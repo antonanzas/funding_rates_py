@@ -1,44 +1,34 @@
 from src.dexes.hyperliquid.getHLData import get_all_hyperliquid_tokens, get_hyperliquid_funding_history_by_token
 from src.dexes.extended.getEXData import get_ex_funding_history_by_token
 from src.graphs.graphs import plot_funding_rates, plot_funding_rates_comparison
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import time;
 import numpy as np
 from tabulate import tabulate
 
-def search_arb_opportunities():
-    """
-    Busca oportunidades de arbitraje entre diferentes exchanges.
-    """
-    print("Starting search for arbitrage opportunities... (it should take about 5 minutes)")
-    tokensHL = get_all_hyperliquid_tokens()
+def process_token(token, timelapse):
+    fundingEx = get_ex_funding_history_by_token(token, timelapse)
+    if len(fundingEx) == 0:
+        print(f"Insufficient data for {token} in EX.")
+        return None
 
-    timelapse = int((time.time() - 15 * 86400) * 1000)
+    fundingHL = get_hyperliquid_funding_history_by_token(token, timelapse)
+    if len(fundingHL) == 0:
+        print(f"Insufficient data for {token} in Hyperliquid.")
+        return None
 
-    token_profiles = []
-
-    for token in tokensHL:
-        fundingEx = get_ex_funding_history_by_token(token, timelapse)
-        if len(fundingEx) == 0:
-            print(f"Insufficient data for {token} in EX.")
-            continue
-
-        fundingHL = get_hyperliquid_funding_history_by_token(token, timelapse)
-        if len(fundingHL) == 0:
-            print(f"Insufficient data for {token} in Hyperliquid.")
-            continue
-        
-
-        # Avg  15 dias funding
+    try:
+        # Avg 15 días
         fundingHL_avg_15 = np.mean([entry['funding1h'] for entry in fundingHL])
         fundingEx_avg_15 = np.mean([entry['funding1h'] for entry in fundingEx])
         spread_15 = fundingHL_avg_15 - fundingEx_avg_15
 
-        # Avg  7 dias funding
+        # Avg 7 días
         fundingHL_avg_7 = np.mean([entry['funding1h'] for entry in fundingHL[-7*24:]])
         fundingEx_avg_7 = np.mean([entry['funding1h'] for entry in fundingEx[-7*24:]])
         spread_7 = fundingHL_avg_7 - fundingEx_avg_7
 
-        # Avg  1 dia funding
+        # Avg 1 día
         fundingHL_avg_1 = np.mean([entry['funding1h'] for entry in fundingHL[-24:]])
         fundingEx_avg_1 = np.mean([entry['funding1h'] for entry in fundingEx[-24:]])
         spread_1 = fundingHL_avg_1 - fundingEx_avg_1
@@ -55,8 +45,32 @@ def search_arb_opportunities():
             'fundingEx_avg_1d': fundingEx_avg_1,
             'spread_1d': abs(spread_1)
         }
-        token_profiles.append(token_profile)
+
         print(f"Token: {token}, Spread 15d: {spread_15:.6f}, Spread 7d: {spread_7:.6f}, Spread 1d: {spread_1:.6f}")
+        return token_profile
+
+    except Exception as e:
+        print(f"Error processing {token}: {e}")
+        return None
+
+def search_arb_opportunities():
+    """
+    Busca oportunidades de arbitraje entre diferentes exchanges.
+    """
+    print("Starting search for arbitrage opportunities... (it should take about 1 minute)")
+    tokensHL = get_all_hyperliquid_tokens()
+    timelapse = int((time.time() - 15 * 86400) * 1000)
+
+    token_profiles = []
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [executor.submit(process_token, token,timelapse) for token in tokensHL]
+
+    for future in as_completed(futures):
+        result = future.result()
+        if result:
+            token_profiles.append(result)
+        
 
     return token_profiles
 
