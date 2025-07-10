@@ -32,7 +32,7 @@ Before you begin, make sure you have:
 
 2. **Install required libraries**:
    ```bash
-   pip install tabulate matplotlib hyperliquid-python-sdk
+   pip install tabulate matplotlib pandas hyperliquid-python-sdk
    ```
 ## ▶️ Running the project
 Once everything is set up, you can run the main script with:
