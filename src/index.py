@@ -1,5 +1,6 @@
 from src.dexes.hyperliquid.getHLData import get_all_hyperliquid_tokens, get_hyperliquid_funding_history_by_token
 from src.dexes.extended.getEXData import get_ex_funding_history_by_token
+from src.graphs.graphs import plot_funding_rates, plot_funding_rates_comparison
 import time;
 import numpy as np
 from tabulate import tabulate
@@ -8,7 +9,7 @@ def search_arb_opportunities():
     """
     Busca oportunidades de arbitraje entre diferentes exchanges.
     """
-    print("Fetching HL tokens..")
+    print("Starting search for arbitrage opportunities... (it should take about 5 minutes)")
     tokensHL = get_all_hyperliquid_tokens()
 
     timelapse = int((time.time() - 15 * 86400) * 1000)
@@ -94,14 +95,40 @@ def print_top_5_table(opportunities, timeframe='1d'):
     print(tabulate(table, headers=headers, tablefmt="fancy_grid"))
 
 if __name__ == "__main__":
-    opportunities = search_arb_opportunities()
-    print("Arbitrage Opportunities:")
-    opportunities.sort(key=lambda x: x['spread_1d'], reverse=True)
-    print_top_5_table(opportunities)
-    opportunities.sort(key=lambda x: x['spread_7d'], reverse=True)
-    print_top_5_table(opportunities,'7d')
-    opportunities.sort(key=lambda x: x['spread_15d'], reverse=True)
-    print_top_5_table(opportunities,'15d')
+    print("\n" + "="*50)
+    print("🎯  Welcome to the *Arbitrage Opportunity Finder*  🎯")
+    print("="*50)
+    print("Please choose an option:\n")
+    print("  1️⃣  Search for arbitrage opportunities")
+    print("  2️⃣  Plot funding rates for a specific token")
+    print("  3️⃣  Compare funding rates for a specific token")
+    print("  0️⃣  Exit\n")
+
+    choice = input("Enter your choice (0-3): ").strip()
+
+    if choice == '0':
+        print("Exiting the program. Goodbye! 👋")
+        exit()
+    elif choice == '1':
+        opportunities = search_arb_opportunities()
+        print("Arbitrage Opportunities:")
+        opportunities.sort(key=lambda x: x['spread_1d'], reverse=True)
+        print_top_5_table(opportunities)
+        opportunities.sort(key=lambda x: x['spread_7d'], reverse=True)
+        print_top_5_table(opportunities,'7d')
+        opportunities.sort(key=lambda x: x['spread_15d'], reverse=True)
+        print_top_5_table(opportunities,'15d')
+    elif choice == '2':
+        token = input("Enter the token symbol (e.g., ETH, BTC): ").strip().upper()
+        timelapse = input("Enter the time period in days (default is 1, max 31): ").strip() or '1'
+        platform = input("Enter the platform (HL, EX, default is HL): ").strip().upper() or 'HL'
+        plot_funding_rates(token, int(timelapse), platform)
+    elif choice == '3':
+        token = input("Enter the token symbol (e.g., ETH, BTC): ").strip().upper()
+        timelapse = input("Enter the time period in days (default is 7, max 31): ").strip() or '7'
+        print(f"Comparing funding rates of hyperliquid and extended")
+        plot_funding_rates_comparison(token, int(timelapse))
+
 
         
             

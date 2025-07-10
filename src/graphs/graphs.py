@@ -6,19 +6,25 @@ from src.dexes.hyperliquid.getHLData import get_hyperliquid_funding_history_by_t
 from src.dexes.extended.getEXData import get_ex_funding_history_by_token
 from src.dexes.paradex.getPDXData import get_pdx_funding_history_by_token
 
-hl_data = get_hyperliquid_funding_history_by_token("IP", int((time.time() - 7 * 86400) * 1000))  # Últimos 7 días
-ex_data = get_ex_funding_history_by_token("IP", int((time.time() -7 * 86400) * 1000))  # Últimos 7 días
-# pdx_data = get_pdx_funding_history_by_token("KAITO", int((time.time() - 15 * 86400) * 1000))  # Últimos 7 días
-
-def plot_funding_rates(data):
+def plot_funding_rates(token, days, platform="HL"):
     """
     Plotea las tasas de financiamiento para un token específico.
 
     Args:
         data (list): Lista de diccionarios con los datos de financiamiento.
     """
+
+    if days > 31:
+       days = 31
+
+    data = []
+    if platform == "HL":
+      data = get_hyperliquid_funding_history_by_token(token, int((time.time() - days * 86400) * 1000))
+    elif platform == "EX":
+      data = get_ex_funding_history_by_token(token, int((time.time() - days * 86400) * 1000))
+    elif platform == "PDX":
+      data = get_pdx_funding_history_by_token(token, int((time.time() - days * 86400) * 1000)) 
     # Extraer datos
-    print("Datos de financiamiento:", data)
     token = data[0]['coin'] if data else "Desconocido"
 
     times = [datetime.fromtimestamp(entry['time']/1000) for entry in data]
@@ -41,15 +47,19 @@ def plot_funding_rates(data):
     plt.grid(True)
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig("funding_chart_" + token + ".png")  # Guardar el gráfico como imagen
+    plt.savefig("funding_chart_" + token + "_" + platform + "_" + str(days) + "d.png")
+    print(f"Gráfico guardado como funding_chart_{token}_{platform}_{days}d.png")
 
-def plot_funding_rates_comparison(HL_data, EX_data):
+def plot_funding_rates_comparison(token, days):
     """
     Plotea las tasas de financiamiento para un token específico.
 
     Args:
         data (list): Lista de diccionarios con los datos de financiamiento.
     """
+
+    HL_data = get_hyperliquid_funding_history_by_token(token, int((time.time() - days * 86400) * 1000))
+    EX_data = get_ex_funding_history_by_token(token, int((time.time() - days * 86400) * 1000))
 
     if len(EX_data) == 0:
         print("No hay datos de financiamiento para EX.")
@@ -91,9 +101,5 @@ def plot_funding_rates_comparison(HL_data, EX_data):
     plt.grid(True)
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig("funding_chart_" + token + ".png")
-    print(f"Gráfico guardado como funding_chart_{token}.png")
-
-# plot_funding_rates(hl_data)  # Últimos 7 días
-# plot_funding_rates(pdx_data)
-plot_funding_rates_comparison(hl_data, ex_data)
+    plt.savefig("funding_comparison_chart_" + token + ".png")
+    print(f"Gráfico guardado como funding_comparison_chart_{token}.png")
