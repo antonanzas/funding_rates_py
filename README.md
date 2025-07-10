@@ -15,7 +15,7 @@ Before you begin, make sure you have:
 
 ## ⚙️ Installation
 
-1.  **Option 1: Clone this repository**:
+1. **Option 1 - Clone this repository**:
 
    ```bash
    git clone https://github.com/antonanzas/funding_rates_py.git
