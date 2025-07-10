@@ -15,12 +15,21 @@ Before you begin, make sure you have:
 
 ## ⚙️ Installation
 
-1. **Clone this repository**:
+1.  **Option 1: Clone this repository**:
 
    ```bash
    git clone https://github.com/antonanzas/funding_rates_py.git
    cd funding_rates.py
    ```
+1. **Option 2 – Download as .zip**:
+
+   If you don't have Git installed:
+   
+   1. Click the green **"Code"** button at the top of the repository page
+   2. Select **"Download ZIP"**
+   3. Extract the downloaded folder
+   4. Open the folder with **Visual Studio Code**
+
 2. **Install required libraries**:
    ```bash
    pip install tabulate matplotlib hyperliquid-python-sdk
