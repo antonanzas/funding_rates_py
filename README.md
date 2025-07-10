@@ -18,7 +18,7 @@ Before you begin, make sure you have:
 1. **Clone this repository**:
 
    ```bash
-   git clone [https://github.com/your-username/your-repo-name.git](https://github.com/antonanzas/funding_rates_py.git)
+   git clone https://github.com/antonanzas/funding_rates_py.git
    cd funding_rates.py
    ```
 2. **Install required libraries**:
